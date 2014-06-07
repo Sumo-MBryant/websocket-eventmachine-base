@@ -13,6 +13,16 @@ module WebSocket
 
   module EventMachine
 
+    # Describes the reason for a closed WebSocket connection
+    class CloseReason
+      attr_reader :code, :data
+
+      def initialize(code = 0, data = '')
+        @code = code
+        @data = data
+      end
+    end
+
     # WebSocket Base for Client and Server (using EventMachine)
     class Base < Connection
 
@@ -25,7 +35,8 @@ module WebSocket
       def onopen(&blk);     @onopen = blk;    end
 
       # Called when connection is closed.
-      # No parameters are passed to block
+      # One parameter is passed to block:
+      #   reason - reason object with 'code' and 'data' members
       def onclose(&blk);    @onclose = blk;   end
 
       # Called when error occurs.
@@ -120,7 +131,7 @@ module WebSocket
         unless @state == :closed
           @state = :closed
           close
-          trigger_onclose('')
+          trigger_onclose(CloseReason.new)
         end
       end
 
@@ -171,7 +182,7 @@ module WebSocket
             when :close
               @state = :closing
               close
-              trigger_onclose(frame.to_s)
+              trigger_onclose(CloseReason.new(frame.code, frame.data))
             when :ping
               pong(frame.to_s)
               trigger_onping(frame.to_s)
@@ -202,7 +213,7 @@ module WebSocket
         unless @state == :closed
           @state = :closed
           close
-          trigger_onclose('')
+          trigger_onclose(CloseReason.new)
         end
       end
 
