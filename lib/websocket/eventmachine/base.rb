@@ -169,7 +169,7 @@ module WebSocket
           trigger_onopen
           handle_open(@handshake.leftovers) if @handshake.leftovers
         else
-          trigger_onerror(@handshake.error)
+          trigger_onerror(@handshake.error.to_s)
           close
         end
       end
@@ -205,6 +205,7 @@ module WebSocket
           when :invalid_payload_encoding then 1007
           else 1002
         end
+        trigger_onerror(error.to_s)
         close(error_code)
         unbind
       end
